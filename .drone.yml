@@ -4,9 +4,8 @@ name: build
 
 steps:
 - name: build
-  image: golang
+  image: golang:1.11
   commands:
-  - go build
   - go test
 
 ---
