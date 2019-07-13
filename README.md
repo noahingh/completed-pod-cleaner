@@ -1,5 +1,5 @@
 # Kubernetes completed pod cleaner
-[![Build Status](https://cloud.drone.io/api/badges/hanjunlee/completed-pod-cleaner/status.svg)](https://cloud.drone.io/hanjunlee/completed-pod-cleaner)
+
 
 ## Features
 
