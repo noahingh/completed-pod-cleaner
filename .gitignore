@@ -13,3 +13,4 @@
 
 # Custom
 *.code-workspace
+.vscode
