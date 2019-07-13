@@ -3,11 +3,11 @@
 
 ## Features
 
-- Delete pod with pattern.
+- Delete pod with pattern. <br/>
 **You can specify pods with multiple patterns,** the format is `namespace/name`. For example if you want to delete pods only in the namespace `foo` the pattern should be `foo/*`.
-- TTL (seconds).
+- TTL (seconds). <br/>
 It has TTL, only delete pods which has overed TTL seconds after completed.
-- Delete the owner job.
+- Delete the owner job. <br/>
 Delete the job which own the pod.
 
 ## Usage
