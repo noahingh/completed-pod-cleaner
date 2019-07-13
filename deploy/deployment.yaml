@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: completed-pod-cleaner
+spec:
+  selector:
+    matchLabels:
+      app: completed-pod-cleaner
+  template:
+    metadata:
+      labels:
+        app: completed-pod-cleaner
+    spec:
+      containers:
+      - name: completed-pod-cleaner
+        image: hanjunlee/completed-pod-cleaner:1
+        args:
+          - -pattern '*'
+          - -job
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"

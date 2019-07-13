@@ -1,0 +1,17 @@
+kind: pipeline
+name: default
+
+steps:
+- name: build
+  image: plugins/docker
+  settings:
+    repo: hanjunlee/completed-pod-cleaner
+    create_repository: true
+    auto_tag: true
+    username: hanjunlee
+    password: 
+      from_secret: docker_password
+
+trigger:
+  event:
+  - tag
