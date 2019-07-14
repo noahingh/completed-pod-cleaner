@@ -11,12 +11,16 @@ spec:
       labels:
         app: completed-pod-cleaner
     spec:
+      serviceAccount: completed-pod-cleaner
       containers:
       - name: completed-pod-cleaner
         image: hanjunlee/completed-pod-cleaner:1
+        imagePullPolicy: Always
         args:
-          - -pattern '*'
+          - -pattern 
+          - '*'
           - -job
+          - -dry-run
         resources:
           limits:
             memory: "128Mi"
