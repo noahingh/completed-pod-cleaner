@@ -34,7 +34,7 @@ completed-pod-cleaner -h
 
 ## Usage
 
-### Local
+### Out of cluster
 After installation, build and run.
 ```bash
 $ git clone git@github.com:hanjunlee/completed-pod-cleaner.git
@@ -47,7 +47,7 @@ Note that you can specify the configuration path of kubernetes with `KUBECONFIG`
 $ completed-pod-cleaner -pattern 'foo/*' -pattern 'bar/*'  -ttl 3600 -job
 ```
 
-### Manifest
+### In cluster
 Use the files in `./deploy` directory. Modify argument of command in the `./deploy/deployment.yaml` file.
 ```
 $ kubectl apply -f ./deploy/service-account.yaml
