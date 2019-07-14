@@ -19,6 +19,8 @@ spec:
         args:
           - -pattern 
           - '*'
+          - -ttl 
+          - "3600"
           - -job
           - -dry-run
         resources:
