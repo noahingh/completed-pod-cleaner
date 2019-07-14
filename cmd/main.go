@@ -10,14 +10,12 @@ import (
 	"k8s.io/sample-controller/pkg/signals"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/informers"
-	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/rest"
 )
 
 var (
-	kubeconfigPath string
 	debug bool
 	threadiness int
-
 	patterns Patterns
 	ttl int
 	job bool
@@ -25,11 +23,9 @@ var (
 )
 
 func init() {
-	flag.StringVar(&kubeconfigPath, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.BoolVar(&debug, "debug", false, "Debug mode.")
 	flag.IntVar(&threadiness, "thread", 1, "The count of worker.")
-
-	flag.Var(&patterns, "pattern", `(list) The completed pods will be deleted when the pod match to pattern.
+	flag.Var(&patterns, "pattern", `(list) The completed pods will be deleted when the name of pod match to pattern.
 The format of pattern is "namespace/name" and you can use the wildcard(i.e '*').`)
 	flag.IntVar(&ttl, "ttl", 0, "TTL seconds after the pod completed.")
 	flag.BoolVar(&job, "job", false, "Delete the job of pod together if the pod is ownered by the job.")
@@ -45,14 +41,13 @@ func main() {
 
 	stopCh := signals.SetupSignalHandler()
 
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
-	if err != nil {
-		log.Fatalf("can not get kube config: %v", err)
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		log.Fatalf("error building kubernetes clientset: %s", err.Error())
+	var clientset kubernetes.Interface
+	if _, err := rest.InClusterConfig(); err == nil {
+		log.Info("it is running in the cluster, uses the service account kubernetes gives to pod.")
+		clientset = GetClient()
+	} else {
+		log.Info("it is running out of the cluster, use the user's configuration.")
+		clientset = GetClientOutOfCluster()
 	}
 
 	log.Infof("run the controller with options: patterns: %s, ttl: %d, job: %t, dry-run: %t", patterns, ttl, job, dryRun)
@@ -70,7 +65,7 @@ func main() {
 	// Start method is non-blocking and runs all registered informers in a dedicated goroutine.
 	factory.Start(stopCh)
 
-	if err = controller.Run(threadiness, stopCh); err != nil {
+	if err := controller.Run(threadiness, stopCh); err != nil {
 		log.Fatalf("error running controller: %s", err.Error())
 	}
 }

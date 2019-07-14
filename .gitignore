@@ -14,3 +14,4 @@
 # Custom
 *.code-workspace
 .vscode
+local/
