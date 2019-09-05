@@ -6,7 +6,7 @@ steps:
   - name: build
     image: plugins/docker
     environment:
-      PLUGIN_CACHE_FROM: 591756927972.dkr.ecr.ap-northeast-1.amazonaws.com/REPO_NAME:latest
+      PLUGIN_CACHE_FROM: 591756927972.dkr.ecr.ap-northeast-1.amazonaws.com/REPO_NAME:base
     settings:
       repo: hanjunlee/completed-pod-cleaner
       create_repository: true
@@ -14,8 +14,6 @@ steps:
       username: hanjunlee
       password:
         from_secret: docker_password
-      tags:
-        - latest
 
 trigger:
   event:
