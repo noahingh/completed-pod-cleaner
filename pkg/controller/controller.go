@@ -4,51 +4,50 @@ import (
 	"fmt"
 	"time"
 
-	log	"github.com/sirupsen/logrus"
 	"github.com/minio/minio/pkg/wildcard"
+	log "github.com/sirupsen/logrus"
 
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/cache"
 	informers "k8s.io/client-go/informers/core/v1"
+	"k8s.io/client-go/kubernetes"
 	listers "k8s.io/client-go/listers/core/v1"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 
-	"k8s.io/apimachinery/pkg/util/wait"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	corev1 "k8s.io/api/core/v1"
 )
 
 // Controller delete completed pod if the key(namespace/name) are equal to the pattern
 type Controller struct {
-	log *log.Entry
+	log      *log.Entry
 	patterns []string
-	ttl int
-	job bool
-	dryRun bool
+	ttl      int
+	job      bool
+	dryRun   bool
 
 	clientset kubernetes.Interface
-	lister listers.PodLister
-	synced cache.InformerSynced	
+	lister    listers.PodLister
+	synced    cache.InformerSynced
 	workqueue workqueue.RateLimitingInterface
 }
 
 // NewController create the controller which delete the completed pod match to patterns.
-func NewController(clientset kubernetes.Interface, informer informers.PodInformer, patterns []string, ttl int, job bool, dryRun bool) *Controller{
+func NewController(clientset kubernetes.Interface, informer informers.PodInformer, patterns []string, ttl int, job bool, dryRun bool) *Controller {
 	c := &Controller{
-		log: log.WithFields(log.Fields{"role": "controller"}),
+		log:      log.WithFields(log.Fields{"role": "controller"}),
 		patterns: patterns,
-		ttl: ttl,
-		job: job,
-		dryRun: dryRun,
+		ttl:      ttl,
+		job:      job,
+		dryRun:   dryRun,
 
 		clientset: clientset,
-		lister: informer.Lister(),
-		synced: informer.Informer().HasSynced,
+		lister:    informer.Lister(),
+		synced:    informer.Informer().HasSynced,
 		workqueue: workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
 	}
-	
+
 	c.log.Debug("add the events")
 	informer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
@@ -63,7 +62,6 @@ func NewController(clientset kubernetes.Interface, informer informers.PodInforme
 
 // Run wait for syncronizing cache and run worker as many as threadiness.
 func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) error {
-	defer utilruntime.HandleCrash()
 	defer c.workqueue.ShutDown()
 
 	c.log.Debug("starting the controller")
@@ -102,14 +100,14 @@ func (c *Controller) processNextWorkItem() bool {
 	var ok bool
 	if key, ok = obj.(string); !ok {
 		c.workqueue.Forget(obj)
-		utilruntime.HandleError(fmt.Errorf("expected string in workqueue but got %#v", obj))
+		c.log.Errorf("expected string in workqueue but got %#v", obj)
 		return true
 	}
 
 	pod, err := c.getPod(key)
 	if err != nil {
 		c.workqueue.Forget(obj)
-		utilruntime.HandleError(fmt.Errorf("pod '%s' in work queue does not exists", key))
+		c.log.Warnf("pod '%s' in work queue does not exists", key)
 		return true
 	}
 
@@ -133,13 +131,12 @@ func (c *Controller) processNextWorkItem() bool {
 	return true
 }
 
-
 // enqueuePod enqueue the key if the key(namespace/name) is equal to the pattern
 func (c *Controller) enqueuePod(obj interface{}) {
 	var key string
 	var err error
 	if key, err = cache.MetaNamespaceKeyFunc(obj); err != nil {
-		utilruntime.HandleError(err)
+		c.log.Error(err)
 		return
 	}
 	// match the key and the pattern
@@ -154,7 +151,7 @@ func (c *Controller) enqueuePod(obj interface{}) {
 
 	if !isMatched {
 		c.log.Debugf("this pod does not match to patterns: %s", key)
-		return 
+		return
 	}
 	c.log.Infof("enqueue the key of pod: %s", key)
 	c.workqueue.Add(key)
@@ -188,14 +185,14 @@ func (c *Controller) getExecutionTimeSeconds(pod *corev1.Pod) int {
 func (c *Controller) deletePod(pod *corev1.Pod) {
 	if c.dryRun {
 		c.log.Infof("dry-run: the pod would have been deleted: %s", pod.Name)
-		return 
+		return
 	}
 
 	c.log.Infof("deleting the pod: %s", pod.Name)
 	var po metav1.DeleteOptions
 	err := c.clientset.CoreV1().Pods(pod.Namespace).Delete(pod.Name, &po)
 	if err != nil {
-		c.log.Infof("failed to delete completed pod: %v",  err)
+		c.log.Infof("failed to delete completed pod: %v", err)
 	}
 	return
 }
@@ -216,7 +213,7 @@ func (c *Controller) deleteJob(pod *corev1.Pod) {
 
 	if c.dryRun {
 		c.log.Infof("dry-run: the job would have been deleted: %s", jobName)
-		return 
+		return
 	}
 
 	c.log.Infof("deleting the job: %s", jobName)
@@ -225,5 +222,5 @@ func (c *Controller) deleteJob(pod *corev1.Pod) {
 	if err != nil {
 		log.Printf("failed to delete job %s: %v", jobName, err)
 	}
-	return 
+	return
 }
