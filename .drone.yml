@@ -3,16 +3,20 @@ kind: pipeline
 name: build
 
 steps:
-- name: build
-  image: plugins/docker
-  settings:
-    repo: hanjunlee/completed-pod-cleaner
-    create_repository: true
-    auto_tag: true
-    username: hanjunlee
-    password: 
-      from_secret: docker_password
+  - name: build
+    image: plugins/docker
+    environment:
+      PLUGIN_CACHE_FROM: 591756927972.dkr.ecr.ap-northeast-1.amazonaws.com/REPO_NAME:latest
+    settings:
+      repo: hanjunlee/completed-pod-cleaner
+      create_repository: true
+      auto_tag: true
+      username: hanjunlee
+      password:
+        from_secret: docker_password
+      tags:
+        - latest
 
 trigger:
   event:
-  - tag
+    - tag
