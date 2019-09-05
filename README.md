@@ -4,7 +4,7 @@ The controller delete the completed pods which matched with patterns.
 ## Installation
 
 ### K8S
-`kubectl apply -f https://raw.githubusercontent.com/hanjunlee/completed-pod-cleaner/master/deploy/kubernetes.yaml`.
+`kubectl apply -f ./deploy/kubernetes.yaml`.
 
 ### Local
 ```

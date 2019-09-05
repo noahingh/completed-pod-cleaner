@@ -6,16 +6,16 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["pods"]
-    verbs: ["delete"]
+    verbs: ["list", "get", "watch", "delete"]
   - apiGroups: ["batch", "extensions"]
     resources: ["jobs"]
-    verbs: ["delete"]
+    verbs: ["list", "get", "watch", "delete"]
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: completed-pod-cleaner
-  namespace: default
+  namespace: kube-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
@@ -28,7 +28,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: completed-pod-cleaner
-    namespace: default
+    namespace: kube-system
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -52,7 +52,7 @@ spec:
             - -pattern
             - "*"
             - -ttl
-            - "3600"
+            - "300"
             - -job
             - -dry-run
           resources:
