@@ -1,5 +1,7 @@
 module github.com/hanjunlee/completed-pod-cleaner
 
+replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
+
 require (
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190328170749-bb2674552d8f // indirect
