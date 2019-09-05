@@ -1,0 +1,61 @@
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: completed-pod-cleaner
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["delete"]
+  - apiGroups: ["batch", "extensions"]
+    resources: ["jobs"]
+    verbs: ["delete"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: completed-pod-cleaner
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: completed-pod-cleaner
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: completed-pod-cleaner
+subjects:
+  - kind: ServiceAccount
+    name: completed-pod-cleaner
+    namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: completed-pod-cleaner
+spec:
+  selector:
+    matchLabels:
+      app: completed-pod-cleaner
+  template:
+    metadata:
+      labels:
+        app: completed-pod-cleaner
+    spec:
+      serviceAccount: completed-pod-cleaner
+      containers:
+        - name: completed-pod-cleaner
+          image: hanjunlee/completed-pod-cleaner:1
+          imagePullPolicy: Always
+          args:
+            - -pattern
+            - "*"
+            - -ttl
+            - "3600"
+            - -job
+            - -dry-run
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
